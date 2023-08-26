@@ -1,0 +1,19 @@
+{
+  "name": "recipefinder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "u4ik",
+  "type": "module",
+  "license": "ISC",
+  "dependencies": {
+    "enquirer": "^2.4.1",
+    "got": "^13.0.0",
+    "kleur": "^4.1.5",
+    "terminal-image": "^2.0.0"
+  }
+}
