@@ -133,8 +133,8 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
             // console.dir(i, { depth: null });
             // console.log("========================");
             return {
-                name: key.title,
-                hint: `⚠️ Need ${key.missedIngredientCount}: ` + "" + key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
+                name: `🍜 ${key.title}`,
+                hint: `\n  ⚠️  Need ${key.missedIngredientCount}: ` + "" + key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
             };
         })]
     }];
@@ -147,13 +147,13 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
     } else {
         dir.map(i => {
             let key = i[Object.keys(i)[0]];
-            if (key.title === selectedRecipeName) {
+            if (selectedRecipeName.includes(key.title)) {
                 console.log(`===============================`);
                 console.log(`Recipe`);
                 console.log(`===============================`);
-                console.log(`   Name: ${key.title}`)
+                console.log(`🍜 Name: ${key.title}`)
                 console.log(`👍 Likes: ${key.likes}`)
-                console.log(red("   Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "))
+                console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "))
             }
         });
 
