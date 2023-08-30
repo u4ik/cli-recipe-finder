@@ -14,6 +14,7 @@ const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, M
 
 async function main() {
     try {
+
         let optPath = __dirname + '/cache/options.json';
         let ingPath = __dirname + '/cache/ingredients.json';
         let recPath = __dirname + '/cache/saved_recipes.json';
@@ -21,7 +22,9 @@ async function main() {
         let keyPresent = await checkApiKey(optPath);
 
         if (keyPresent) {
+
             const menuOption = await mainMenu();
+
             switch (true) {
                 case menuOption.includes("Setup"): {
                     await setup(optPath);
@@ -40,9 +43,10 @@ async function main() {
                     break;
                 };
             };
+
         } else {
             await saveApiKey(optPath);
-        }
+        };
     } catch (err) {
         console.log(err);
         onCancel(err);
@@ -55,8 +59,8 @@ async function findByIngredient(iPath, rPath, rCachePath, optPath) {
         let { k } = JSON.parse(fs.readFileSync(optPath));
 
         if (fs.existsSync(iPath)) {
-            if (data.length > 0) {
 
+            if (data.length > 0) {
 
                 // const prompt = new MultiSelect({
                 //     name: 'value',
@@ -77,12 +81,12 @@ async function findByIngredient(iPath, rPath, rCachePath, optPath) {
                 //     }
                 // })).json())
 
-                let findByIngredients = JSON.parse(fs.readFileSync(__dirname + "/mockGetByIngredients.json"))
+                let findByIngredients = JSON.parse(fs.readFileSync(__dirname + "/mockGetByIngredients.json"));
 
                 let dir = await parseRecipeResultData(findByIngredients);
 
 
-                await displayRecipeResults(dir, iPath, rPath, rCachePath, optPath)
+                await displayRecipeResults(dir, iPath, rPath, rCachePath, optPath);
 
                 // await recipes(iPath, rPath, rCachePath, optPath);
             } else {
@@ -96,7 +100,7 @@ async function findByIngredient(iPath, rPath, rCachePath, optPath) {
     } catch (err) {
         onCancel(err);
     }
-}
+};
 
 async function parseRecipeResultData(data) {
     return data.map(i => {
@@ -116,7 +120,8 @@ async function parseRecipeResultData(data) {
             }
         }
     })
-}
+};
+
 async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
     const parsedResults = [{
         name: 'recipe',
@@ -130,7 +135,7 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
             return {
                 name: key.title,
                 hint: `⚠️ Need ${key.missedIngredientCount}: ` + "" + key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
-            }
+            };
         })]
     }];
 
@@ -150,7 +155,7 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
                 console.log(`👍 Likes: ${key.likes}`)
                 console.log(red("   Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "))
             }
-        })
+        });
 
         const selectedRecipeOptions = [{
             name: 'recipeOptions',
@@ -186,15 +191,16 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
             }
         }
     }
-}
+};
 
 async function recipesUserSave() {
 
-}
+};
 
 async function recipesCacheSave() {
 
-}
+};
+
 async function recipes(iPath, rPath, rCachePath, optPath) {
     if (fs.existsSync(rPath)) {
 
@@ -392,8 +398,7 @@ async function delIngredients(path) {
             let newData = data.filter(i => !toBeRemoved.map(i => i.toLowerCase()).includes(i));
             fs.writeFileSync(path, JSON.stringify(newData), "utf8");
         };
-        await viewIngredients(path)
-        await ingredients(path);
+        await viewIngredients(path);
     }
 };
 
@@ -410,7 +415,7 @@ async function addIngredients(path) {
         let tmpArr = [...oldData, ...newData];
         let noDupesArr = [...new Set([...tmpArr])].filter(n => n).sort();
 
-        noDupesArr = noDupesArr.map(i => i.toLowerCase())
+        noDupesArr = noDupesArr.map(i => i.toLowerCase());
         fs.writeFileSync(path, JSON.stringify(noDupesArr), "utf8");
     } else {
         fs.writeFileSync(path, JSON.stringify(await prompt.run()), "utf8");
