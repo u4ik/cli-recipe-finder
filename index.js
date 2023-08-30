@@ -147,7 +147,7 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
     } else {
         dir.map(i => {
             let key = i[Object.keys(i)[0]];
-            if (selectedRecipeName.includes(key.title)) {
+            if (`🍜 ${key.title}` === selectedRecipeName) {
                 console.log(`===============================`);
                 console.log(`Recipe`);
                 console.log(`===============================`);
