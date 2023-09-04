@@ -204,8 +204,8 @@ async function viewInstructions(dir, recipeName, rCachePath, optPath) {
         // console.log(key);
         if (`🍜 ${key.title}` === recipeName) {
 
-            console.log("ID", id);
-            console.log(recipeName);
+            // console.log("ID", id);
+            // console.log(recipeName);
             // console.log('got recipe"s instructions');
 
             // let storeObj = {
@@ -221,7 +221,7 @@ async function viewInstructions(dir, recipeName, rCachePath, optPath) {
 
                 //Check if instructions for recipe exists locally
                 if (storedData[id]) {
-                    console.log('found that shit')
+                    console.log('Recipe exists... pull locally...')
                 } else {
                     //Make fetch to view instructions of specific recipe by id
 
@@ -229,18 +229,27 @@ async function viewInstructions(dir, recipeName, rCachePath, optPath) {
 
                     const results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'))
 
-                    console.dir(results[0])
+                    // console.dir(results[0])
 
-                    let parsedSteps = results[0].map(i => {
-
+                    let storeObj;
+                    let stepArr = []
+                    let parsedSteps = results[0].steps.map(i => {
+                        stepArr.push(i.step)
+                        storeObj = { ...key, steps: stepArr }
                     })
 
 
+                    //Store the instructions + recipeDetails
 
-                    let storeObj = {
-                        [Object.keys(i)[0]]: key
-                    }
+                    storedData[id] = storeObj
 
+
+                    fs.writeFileSync(rCachePath, JSON.stringify(storedData), "utf8")
+
+
+
+                    console.log(storeObj);
+                    await displaySteps(stepArr)
                 }
                 // if ([JSON.parse(fs.readFileSync(rCachePath))].length)
             } else {
@@ -249,11 +258,22 @@ async function viewInstructions(dir, recipeName, rCachePath, optPath) {
         }
     })
 
-    //Store the instructions
+
 
     //Display the instructions
 
 }
+
+async function displaySteps(steps) {
+    steps.map((i, idx) => {
+        console.log(`${idx === 0 ? "\n" : ""} ${idx + 1}:`, i, "\n")
+    })
+}
+
+async function displayIngredientServing() {
+
+}
+
 
 async function recipeUserSave() {
 
