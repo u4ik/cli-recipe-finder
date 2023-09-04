@@ -195,8 +195,6 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
 };
 
 async function viewInstructions(dir, recipeName, rCachePath, optPath) {
-    console.log('view instructions');
-    // console.log(recipeName);
     let apiKey = JSON.parse(fs.readFileSync(optPath)).k
 
 
@@ -206,21 +204,20 @@ async function viewInstructions(dir, recipeName, rCachePath, optPath) {
         // console.log(key);
         if (`🍜 ${key.title}` === recipeName) {
 
-            // console.log("ID", id);
-            // console.log(recipeName);
+            console.log("ID", id);
+            console.log(recipeName);
             // console.log('got recipe"s instructions');
 
-            let storeObj = {
-                [Object.keys(i)[0]]: key
-            };
+            // let storeObj = {
+            //     [Object.keys(i)[0]]: key
+            // };
 
             // console.log(storeObj);
             // console.log("cached data:x", [JSON.parse(fs.readFileSync(rCachePath))].length);
 
             if (fs.existsSync(rCachePath)) {
-                console.log('file exists');
                 let storedData = JSON.parse(fs.readFileSync(rCachePath))
-                console.log(storedData);
+                // console.log(storedData);
 
                 //Check if instructions for recipe exists locally
                 if (storedData[id]) {
@@ -228,11 +225,22 @@ async function viewInstructions(dir, recipeName, rCachePath, optPath) {
                 } else {
                     //Make fetch to view instructions of specific recipe by id
 
-                    const results = await getRecipeInstructions(id, apiKey)
+                    // const results = await getRecipeInstructions(id, apiKey)
 
-                    console.log("Obtained results", results)
+                    const results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'))
 
-                    console.log('no recipe found');
+                    console.dir(results[0])
+
+                    let parsedSteps = results[0].map(i => {
+
+                    })
+
+
+
+                    let storeObj = {
+                        [Object.keys(i)[0]]: key
+                    }
+
                 }
                 // if ([JSON.parse(fs.readFileSync(rCachePath))].length)
             } else {
