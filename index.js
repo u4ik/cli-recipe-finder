@@ -224,7 +224,6 @@ async function viewInstructions(dir, recipeName, paths) {
         let { cachePath, optPath } = paths;
         let apiKey = JSON.parse(fs.readFileSync(optPath)).k
 
-
         dir.map(async i => {
             let key = i[Object.keys(i)[0]];
             let id = Object.keys(i)[0]
@@ -289,8 +288,8 @@ async function viewInstructions(dir, recipeName, paths) {
 async function displaySteps(steps) {
     steps.map((i, idx) => {
         console.log(`${idx === 0 ? "\n" : ""} ${idx + 1}:`, i, "\n")
-    })
-}
+    });
+};
 
 async function displayIngredientAmount(storeObj) {
     console.log(" ");
@@ -301,7 +300,7 @@ async function displayIngredientAmount(storeObj) {
     storeObj.servings.map(i => {
         console.log(i);
     })
-}
+};
 
 async function recipeUserSave() {
 
@@ -316,14 +315,18 @@ async function recipeCacheSave() {
 };
 
 async function getRecipeInstructions(recipeId, k) {
-    const results = await (await fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions`, {
-        method: 'GET',
-        headers: {
-            "x-api-key": k
-        }
-    })).json()
+    try {
+        const results = await (await fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions`, {
+            method: 'GET',
+            headers: {
+                "x-api-key": k
+            }
+        })).json()
 
-    return results;
+        return results;
+    } catch (err) {
+        onCancel(err);
+    }
 }
 
 async function recipes(paths) {
