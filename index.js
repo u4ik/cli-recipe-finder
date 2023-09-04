@@ -22,14 +22,10 @@ async function main() {
         }
 
         let { optPath, ingPath } = paths;
-
-
         let keyPresent = await checkApiKey(optPath);
 
         if (keyPresent) {
-
             const menuOption = await mainMenu();
-
             switch (true) {
                 case menuOption.includes("Setup"): {
                     await setup(optPath);
@@ -65,20 +61,19 @@ async function findByIngredient(paths) {
         let { k } = JSON.parse(fs.readFileSync(optPath));
 
         if (fs.existsSync(ingPath)) {
-
             if (data.length > 0) {
 
-                // const prompt = new MultiSelect({
-                //     name: 'value',
-                //     message: 'Select ingredients to use in search',
-                //     limit: 10,
-                //     choices: data.map(i => i[0].toUpperCase() + i.substr(1, i.length))
-                // });
+                const prompt = new MultiSelect({
+                    name: 'value',
+                    message: 'Select ingredients to use in search',
+                    limit: 10,
+                    choices: data.map(i => i[0].toUpperCase() + i.substr(1, i.length))
+                });
 
-                // let searchQueryIngredients = await prompt.run();
-                // let searchIngredientString = searchQueryIngredients.map(i => i.toLowerCase()).join(",+")
+                let searchQueryIngredients = await prompt.run();
+                let searchIngredientString = searchQueryIngredients.map(i => i.toLowerCase()).join(",+")
 
-                // console.log(searchIngredientString);
+                //? NETWORK REQUEST
 
                 // const findByIngredients = (await (await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${searchIngredientString}`, {
                 //     method: 'GET',
@@ -86,6 +81,8 @@ async function findByIngredient(paths) {
                 //         "x-api-key": k
                 //     }
                 // })).json())
+
+                //? LOCAL REQUEST
 
                 let findByIngredients = JSON.parse(fs.readFileSync(__dirname + "/mockGetByIngredients.json"));
 
@@ -212,10 +209,7 @@ async function displayRecipeResults(dir, paths) {
     if (selectedRecipeName.includes("Back")) {
         await recipes(paths);
     } else {
-
         await showRecipe(selectedRecipeName, dir, paths)
-
-
     }
 };
 
@@ -229,21 +223,16 @@ async function viewInstructions(dir, recipeName, paths) {
             let id = Object.keys(i)[0]
             if (`🍜 ${key.title}` === recipeName) {
 
-                // console.log("ID", id);
-                // console.log(recipeName);
-
                 if (fs.existsSync(cachePath)) {
                     let storedData = JSON.parse(fs.readFileSync(cachePath))
-                    // console.log(storedData);
 
-                    //Check if instructions for recipe exists locally
                     if (storedData[id]) {
                         await displayIngredientAmount(storedData[id])
                         await displaySteps(storedData[id].steps)
                     } else {
-
+                        //? NETWORK REQUEST
                         // const results = await getRecipeInstructions(id, apiKey)
-
+                        //? LOCAL DATA
                         const results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'))
 
                         let storeObj;
@@ -256,7 +245,7 @@ async function viewInstructions(dir, recipeName, paths) {
 
                         storedData[id] = storeObj;
 
-                        fs.writeFileSync(cachePath, JSON.stringify(storedData), "utf8");
+                        await recipeCacheSave(cachePath, storedData);
 
                         await displayIngredientAmount(storeObj)
                         await displaySteps(stepArr)
@@ -275,7 +264,8 @@ async function viewInstructions(dir, recipeName, paths) {
                     }
 
                 } else {
-                    fs.writeFileSync(cachePath, JSON.stringify({}), "utf8");
+                    await recipeCacheSave(cachePath);
+                    await viewInstructions(dir, recipeName, paths);
                 }
             }
         })
@@ -283,6 +273,10 @@ async function viewInstructions(dir, recipeName, paths) {
     } catch (err) {
         onCancel(err);
     }
+}
+
+async function displayRecipeInformation() {
+
 }
 
 async function displaySteps(steps) {
@@ -299,19 +293,15 @@ async function displayIngredientAmount(storeObj) {
     console.log(" ");
     storeObj.servings.map(i => {
         console.log(i);
-    })
+    });
 };
 
 async function recipeUserSave() {
-
-
     //Save locally by user's request
-
-
 };
 
-async function recipeCacheSave() {
-
+async function recipeCacheSave(cachePath, storedData = {}) {
+    fs.writeFileSync(cachePath, JSON.stringify(storedData), "utf8");
 };
 
 async function getRecipeInstructions(recipeId, k) {
@@ -456,7 +446,7 @@ async function mainMenu() {
     const option = new Select({
         name: 'option',
         message: 'Select an option',
-        choices: ['🍞 Ingredients', '📝 Recipes', '⚙️ Setup', '❔ About',]
+        choices: ['🍞 Ingredients', '📝 Recipes', '⚙️ Setup', '❔ About', '❌ Exit']
     });
 
     return option.run();
