@@ -1,0 +1,83 @@
+[
+  {
+    "name": "",
+    "steps": [
+      {
+        "number": 1,
+        "step": "Preheat oven to 425 degrees.Peel and slice apples into quarter sized slices.Toss apples in cinnamon, nutmeg, lemon juice, sugar and salt; let sit.",
+        "ingredients": [
+          {
+            "id": 9152,
+            "name": "lemon juice",
+            "localizedName": "lemon juice",
+            "image": "lemon-juice.jpg"
+          },
+          {
+            "id": 2010,
+            "name": "cinnamon",
+            "localizedName": "cinnamon",
+            "image": "cinnamon.jpg"
+          },
+          {
+            "id": 9003,
+            "name": "apple",
+            "localizedName": "apple",
+            "image": "apple.jpg"
+          },
+          {
+            "id": 2025,
+            "name": "nutmeg",
+            "localizedName": "nutmeg",
+            "image": "ground-nutmeg.jpg"
+          },
+          {
+            "id": 19335,
+            "name": "sugar",
+            "localizedName": "sugar",
+            "image": "sugar-in-bowl.png"
+          },
+          {
+            "id": 2047,
+            "name": "salt",
+            "localizedName": "salt",
+            "image": "salt.jpg"
+          }
+        ],
+        "equipment": [
+          {
+            "id": 404784,
+            "name": "oven",
+            "localizedName": "oven",
+            "image": "oven.jpg"
+          }
+        ]
+      },
+      {
+        "number": 2,
+        "step": "Mix all ingredients for streusel together.Fill a greased small baking dish with apple mixture.Top with streusel and bake until streusel is brown.",
+        "ingredients": [
+          {
+            "id": 9003,
+            "name": "apple",
+            "localizedName": "apple",
+            "image": "apple.jpg"
+          }
+        ],
+        "equipment": [
+          {
+            "id": 404646,
+            "name": "baking pan",
+            "localizedName": "baking pan",
+            "image": "roasting-pan.jpg"
+          },
+          {
+            "id": 404784,
+            "name": "oven",
+            "localizedName": "oven",
+            "image": "oven.jpg"
+          }
+        ]
+      }
+    ]
+  }
+]

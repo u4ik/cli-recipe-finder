@@ -12,6 +12,9 @@ import pkg from 'kleur';
 const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
 
+
+
+
 async function main() {
     try {
 
@@ -169,9 +172,7 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
             ]
         }]
 
-
         let selectedRecipeOption = await prompt(selectedRecipeOptions);
-
 
         switch (true) {
             case selectedRecipeOption.recipeOptions.includes("Save"): {
@@ -179,7 +180,7 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("View"): {
-                console.log('viewed instructions');
+                await viewInstructions(dir, selectedRecipeName, rCachePath, optPath);
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("Back"): {
@@ -193,13 +194,81 @@ async function displayRecipeResults(dir, iPath, rPath, rCachePath, optPath) {
     }
 };
 
-async function recipesUserSave() {
+async function viewInstructions(dir, recipeName, rCachePath, optPath) {
+    console.log('view instructions');
+    // console.log(recipeName);
+    let apiKey = JSON.parse(fs.readFileSync(optPath)).k
+
+
+    dir.map(async i => {
+        let key = i[Object.keys(i)[0]];
+        let id = Object.keys(i)[0]
+        // console.log(key);
+        if (`🍜 ${key.title}` === recipeName) {
+
+            // console.log("ID", id);
+            // console.log(recipeName);
+            // console.log('got recipe"s instructions');
+
+            let storeObj = {
+                [Object.keys(i)[0]]: key
+            };
+
+            // console.log(storeObj);
+            // console.log("cached data:x", [JSON.parse(fs.readFileSync(rCachePath))].length);
+
+            if (fs.existsSync(rCachePath)) {
+                console.log('file exists');
+                let storedData = JSON.parse(fs.readFileSync(rCachePath))
+                console.log(storedData);
+
+                //Check if instructions for recipe exists locally
+                if (storedData[id]) {
+                    console.log('found that shit')
+                } else {
+                    //Make fetch to view instructions of specific recipe by id
+
+                    const results = await getRecipeInstructions(id, apiKey)
+
+                    console.log("Obtained results", results)
+
+                    console.log('no recipe found');
+                }
+                // if ([JSON.parse(fs.readFileSync(rCachePath))].length)
+            } else {
+                fs.writeFileSync(rCachePath, JSON.stringify({}), "utf8");
+            }
+        }
+    })
+
+    //Store the instructions
+
+    //Display the instructions
+
+}
+
+async function recipeUserSave() {
+
+
+    //Save locally by user's request
+
 
 };
 
-async function recipesCacheSave() {
+async function recipeCacheSave() {
 
 };
+
+async function getRecipeInstructions(recipeId, k) {
+    const results = await (await fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions`, {
+        method: 'GET',
+        headers: {
+            "x-api-key": k
+        }
+    })).json()
+
+    return results;
+}
 
 async function recipes(iPath, rPath, rCachePath, optPath) {
     if (fs.existsSync(rPath)) {
