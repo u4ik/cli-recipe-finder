@@ -17,7 +17,8 @@ const environment = 'local';
 /*
 
 TODO: Add ability to save recipe upon viewing minor details
-?       - Check if recipe is already saved. No unnecessary rewrites!
+?       - View User Recipes
+?       - Delete User Recipes
 
 */
 
@@ -115,10 +116,14 @@ async function findByIngredient(paths) {
 
 async function showRecipe(selectedRecipeName, dir, paths) {
     try {
+        const { recPath } = paths;
         let selectedRecipe = {};
+        let id;
         dir.map(i => {
             let key = i[Object.keys(i)[0]];
             if (`🍜 ${key.title}` === selectedRecipeName) {
+                id = Object.keys(i)[0];
+
                 console.log(`===============================`);
                 console.log(`Recipe`);
                 console.log(`===============================`);
@@ -139,11 +144,24 @@ async function showRecipe(selectedRecipeName, dir, paths) {
                 { name: '📃 View Instructions' },
                 { name: "⬅️ Go Back" },
             ]
+                .map((i) => {
+                    if (Object.keys(JSON.parse(fs.readFileSync(recPath))).includes(id)) {
+                        return i.name === "💾 Save" ? "❌ Remove From Saved" : i
+                    } else {
+                        return i
+                    }
+
+                })
         }]
 
         let selectedRecipeOption = await prompt(selectedRecipeOptions);
 
         switch (true) {
+            case selectedRecipeOption.recipeOptions.includes("Remove"): {
+                await removeUserSavedRecipe(id, paths);
+                await showRecipe(selectedRecipeName, dir, paths)
+                break;
+            }
             case selectedRecipeOption.recipeOptions.includes("Save"): {
                 const userSave = true;
                 await viewInstructions(dir, selectedRecipeName, paths, userSave)
@@ -164,6 +182,15 @@ async function showRecipe(selectedRecipeName, dir, paths) {
     } catch (err) {
         onCancel(err)
     }
+}
+
+async function removeUserSavedRecipe(id, paths) {
+    const { recPath } = paths;
+    let storedRecipes = JSON.parse(fs.readFileSync(recPath, "utf8"));
+    delete storedRecipes[id];
+    fs.writeFileSync(recPath, JSON.stringify(storedRecipes));
+    console.log(red("Recipe removed successfully!"));
+
 }
 
 async function parseRecipeResultData(data) {
@@ -309,7 +336,17 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
     }
 }
 
-async function displayRecipeInformation() {
+async function displayUserSavedRecipes(paths, data) {
+    let savedDir = [];
+    Object.keys(data).map(i => {
+        console.log(i);
+        let obj = { [i]: data[i] }
+        savedDir.push(obj);
+    });
+    console.log("===============================");
+    console.log("My Saved Recipes");
+    console.log("===============================");
+    await displayRecipeResults(savedDir, paths)
 
 }
 
@@ -372,7 +409,7 @@ async function recipes(paths) {
             '🗑️ Delete',
             "⬅️ Go Back"
         ].map(i => {
-            if (data.length > 0) {
+            if (Object.keys(data).length > 0) {
                 return i;
             } else {
                 return i != '🗑️ Delete' && i != '📃 View Saved' ? i : '';
@@ -391,7 +428,7 @@ async function recipes(paths) {
                 break;
             }
             case choice.includes("View Saved"): {
-                console.log('view saved');
+                await displayUserSavedRecipes(paths, data);
                 break;
             }
             case choice.includes("Delete"): {
