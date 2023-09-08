@@ -1,6 +1,6 @@
 import terminalImage from 'terminal-image';
 import got from 'got';
-import fs from "fs";
+import fs, { existsSync } from "fs";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 const cRequire = createRequire(import.meta.url);
@@ -11,6 +11,21 @@ import fetch from "node-fetch";
 import pkg from 'kleur';
 const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
+
+const environment = 'local';
+
+/*!SECTION
+
+TODO: Add ability to save recipe upon viewing
+
+
+
+
+*/
+
+
+
+
 
 async function main() {
     try {
@@ -106,6 +121,7 @@ async function findByIngredient(paths) {
 
 async function showRecipe(selectedRecipeName, dir, paths) {
     try {
+        let selectedRecipe = {};
         dir.map(i => {
             let key = i[Object.keys(i)[0]];
             if (`🍜 ${key.title}` === selectedRecipeName) {
@@ -115,6 +131,7 @@ async function showRecipe(selectedRecipeName, dir, paths) {
                 console.log(`🍜 Name: ${key.title}`)
                 console.log(`👍 Likes: ${key.likes}`)
                 console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "))
+                selectedRecipe = key;
             }
         });
 
@@ -134,7 +151,7 @@ async function showRecipe(selectedRecipeName, dir, paths) {
 
         switch (true) {
             case selectedRecipeOption.recipeOptions.includes("Save"): {
-                console.log('recipe saved');
+                recipeUserSave(dir, selectedRecipe, paths)
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("View"): {
@@ -296,8 +313,17 @@ async function displayIngredientAmount(storeObj) {
     });
 };
 
-async function recipeUserSave() {
+async function recipeUserSave(dir, recipe, paths) {
+    const { recPath } = paths;
     //Save locally by user's request
+    // console.log(recipe);
+    if (fs.existsSync(recPath)) {
+        console.log('file exists')
+    } else {
+        console.log('file written with "{}"')
+        fs.writeFileSync(recPath, JSON.stringify({}));
+        await recipeUserSave(dir, recipe, paths)
+    }
 };
 
 async function recipeCacheSave(cachePath, storedData = {}) {
@@ -354,10 +380,6 @@ async function recipes(paths) {
                 console.log('view saved');
                 break;
             }
-            // case choice.includes("Save"): {
-            //     console.log('save a recipe');
-            //     break;
-            // }
             case choice.includes("Delete"): {
                 console.log('delete');
                 break;
@@ -371,9 +393,7 @@ async function recipes(paths) {
             }
         };
     } else {
-        fs.writeFileSync(recPath, JSON.stringify([]), "utf8");
-        fs.writeFileSync(cachePath, JSON.stringify([]), "utf8");
-        console.log('File created for recipes and cache');
+        fs.writeFileSync(recPath, JSON.stringify({}), "utf8");
         await recipes(paths);
     }
 };
