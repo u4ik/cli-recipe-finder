@@ -18,11 +18,6 @@ const environment = 'local';
 
 TODO: Add ability to save recipe upon viewing minor details
 ?       - Check if recipe is already saved. No unnecessary rewrites!
-?       - Saving to cache first, and then to user save, due to implementing instructional steps
- 
-
-
-
 
 */
 
@@ -232,7 +227,6 @@ async function displayRecipeResults(dir, paths) {
 
 async function viewInstructions(dir, recipeName, paths, userSave = false) {
     try {
-        console.log({ userSave });
         let { cachePath, optPath, recPath } = paths;
         let apiKey = JSON.parse(fs.readFileSync(optPath)).k
 
@@ -242,37 +236,44 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
             if (`🍜 ${key.title}` === recipeName) {
 
                 if (fs.existsSync(cachePath)) {
-                    let storedData = JSON.parse(fs.readFileSync(cachePath))
+                    let storedData = JSON.parse(fs.readFileSync(cachePath));
 
                     if (storedData[id]) {
                         if (!userSave) {
                             await displayIngredientAmount(storedData[id])
                             await displaySteps(storedData[id].steps)
                         } else {
-                            await recipeUserSave(paths, storedData);
+
+                            let savedData = JSON.parse(fs.readFileSync(recPath));
+                            savedData[id] = storedData[id];
+
+                            // await recipeUserSave(paths, storedData);
+                            await recipeUserSave(paths, savedData);
                             await showRecipe(recipeName, dir, paths);
                         }
-
                     } else {
                         //? NETWORK REQUEST
                         // const results = await getRecipeInstructions(id, apiKey)
                         //? LOCAL DATA
-                        const results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'))
+                        const results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'));
 
                         let storeObj;
 
-                        let stepArr = []
+                        let stepArr = [];
                         results[0].steps.map(i => {
                             stepArr.push(i.step)
                             storeObj = { ...key, steps: stepArr }
-                        })
+                        });
 
                         storedData[id] = storeObj;
 
                         await recipeCacheSave(cachePath, storedData);
                         if (userSave) {
+                            let savedData = JSON.parse(fs.readFileSync(recPath));
 
-                            await recipeUserSave(paths, storedData);
+                            savedData[id] = storedData[id];
+                            await recipeUserSave(paths, savedData);
+
                             await showRecipe(recipeName, dir, paths);
                         } else {
                             await displayIngredientAmount(storeObj)
@@ -289,10 +290,10 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
                             choices: ["⬅️ Go Back"]
                         }];
 
-                        const goBack = await prompt(goingBack)
+                        const goBack = await prompt(goingBack);
 
                         if (goBack) {
-                            await showRecipe(recipeName, dir, paths)
+                            await showRecipe(recipeName, dir, paths);
                         }
                     }
 
@@ -336,7 +337,7 @@ async function recipeUserSave(paths, storedData = {}) {
         console.log(green('Recipe successfully saved!'));
     } else {
         fs.writeFileSync(recPath, JSON.stringify(storedData), "utf8");
-    }
+    };
 };
 
 async function recipeCacheSave(cachePath, storedData = {}) {
