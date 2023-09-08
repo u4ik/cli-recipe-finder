@@ -14,18 +14,17 @@ const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, M
 
 const environment = 'local';
 
-/*!SECTION
+/*
 
-TODO: Add ability to save recipe upon viewing
+TODO: Add ability to save recipe upon viewing minor details
+?       - Check if recipe is already saved. No unnecessary rewrites!
+?       - Saving to cache first, and then to user save, due to implementing instructional steps
+ 
 
 
 
 
 */
-
-
-
-
 
 async function main() {
     try {
@@ -151,7 +150,8 @@ async function showRecipe(selectedRecipeName, dir, paths) {
 
         switch (true) {
             case selectedRecipeOption.recipeOptions.includes("Save"): {
-                recipeUserSave(dir, selectedRecipe, paths)
+                const userSave = true;
+                await viewInstructions(dir, selectedRecipeName, paths, userSave)
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("View"): {
@@ -230,9 +230,10 @@ async function displayRecipeResults(dir, paths) {
     }
 };
 
-async function viewInstructions(dir, recipeName, paths) {
+async function viewInstructions(dir, recipeName, paths, userSave = false) {
     try {
-        let { cachePath, optPath } = paths;
+        console.log({ userSave });
+        let { cachePath, optPath, recPath } = paths;
         let apiKey = JSON.parse(fs.readFileSync(optPath)).k
 
         dir.map(async i => {
@@ -244,8 +245,14 @@ async function viewInstructions(dir, recipeName, paths) {
                     let storedData = JSON.parse(fs.readFileSync(cachePath))
 
                     if (storedData[id]) {
-                        await displayIngredientAmount(storedData[id])
-                        await displaySteps(storedData[id].steps)
+                        if (!userSave) {
+                            await displayIngredientAmount(storedData[id])
+                            await displaySteps(storedData[id].steps)
+                        } else {
+                            await recipeUserSave(paths, storedData);
+                            await showRecipe(recipeName, dir, paths);
+                        }
+
                     } else {
                         //? NETWORK REQUEST
                         // const results = await getRecipeInstructions(id, apiKey)
@@ -263,26 +270,35 @@ async function viewInstructions(dir, recipeName, paths) {
                         storedData[id] = storeObj;
 
                         await recipeCacheSave(cachePath, storedData);
+                        if (userSave) {
 
-                        await displayIngredientAmount(storeObj)
-                        await displaySteps(stepArr)
+                            await recipeUserSave(paths, storedData);
+                            await showRecipe(recipeName, dir, paths);
+                        } else {
+                            await displayIngredientAmount(storeObj)
+                            await displaySteps(stepArr)
+                        }
+
                     }
-                    const goingBack = [{
-                        name: '',
-                        type: 'select',
-                        message: '',
-                        choices: ["⬅️ Go Back"]
-                    }];
+                    if (!userSave) {
 
-                    const goBack = await prompt(goingBack)
+                        const goingBack = [{
+                            name: '',
+                            type: 'select',
+                            message: '',
+                            choices: ["⬅️ Go Back"]
+                        }];
 
-                    if (goBack) {
-                        await showRecipe(recipeName, dir, paths)
+                        const goBack = await prompt(goingBack)
+
+                        if (goBack) {
+                            await showRecipe(recipeName, dir, paths)
+                        }
                     }
 
                 } else {
                     await recipeCacheSave(cachePath);
-                    await viewInstructions(dir, recipeName, paths);
+                    await viewInstructions(dir, recipeName, paths, userSave);
                 }
             }
         })
@@ -313,16 +329,13 @@ async function displayIngredientAmount(storeObj) {
     });
 };
 
-async function recipeUserSave(dir, recipe, paths) {
+async function recipeUserSave(paths, storedData = {}) {
     const { recPath } = paths;
-    //Save locally by user's request
-    // console.log(recipe);
-    if (fs.existsSync(recPath)) {
-        console.log('file exists')
+    if (Object.keys(storedData).length > 0) {
+        fs.writeFileSync(recPath, JSON.stringify(storedData), "utf8");
+        console.log(green('Recipe successfully saved!'));
     } else {
-        console.log('file written with "{}"')
-        fs.writeFileSync(recPath, JSON.stringify({}));
-        await recipeUserSave(dir, recipe, paths)
+        fs.writeFileSync(recPath, JSON.stringify(storedData), "utf8");
     }
 };
 
