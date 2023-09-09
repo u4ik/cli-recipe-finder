@@ -16,6 +16,7 @@ const devEnv = true;
 /*
 TODO: Add ability to save recipe upon viewing minor details
 ?       - Check all local ingredients with saved recipes
+!        - BUG: When looking at user saved items, and then going to view instructions of found recipes, it will kick back to the results. (something is hitting twice and trailing through)
 */
 async function main() {
     try {
