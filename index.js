@@ -13,13 +13,10 @@ const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
 
 const devEnv = true;
-
 /*
 TODO: Add ability to save recipe upon viewing minor details
 ?       - Check all local ingredients with saved recipes
-!BUG:   - When viewing saved recipes... if 'Remove' is selected, then 'Save', then 'Remove'. The going back will not refresh user saved list
 */
-
 async function main() {
     try {
         const paths = {
@@ -172,8 +169,6 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
         };
     };
 };
-
-
 async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
     try {
         const { recPath } = paths;
@@ -257,7 +252,6 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
         onCancel(err);
     }
 };
-
 async function removeUserSavedRecipe(id, paths) {
     const { recPath } = paths;
     let storedRecipes = JSON.parse(fs.readFileSync(recPath, "utf8"));
@@ -387,7 +381,6 @@ async function viewInstructions(dir, recipeName, paths, userSave = false, userSa
         onCancel(err);
     }
 };
-
 async function displayUserSavedRecipes(paths, data) {
     let savedDir = [];
     Object.keys(data).map(i => {
