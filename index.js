@@ -82,6 +82,7 @@ async function findByIngredient(paths) {
 
 
                 if (searchQueryIngredients.length === 0) {
+                    console.log(red("Select some ingredients!"));
                     await recipes(paths);
                 }
 
@@ -118,7 +119,57 @@ async function findByIngredient(paths) {
     }
 };
 
-async function showRecipe(selectedRecipeName, dir, paths, saved = false) {
+
+async function displayRecipeResults(dir, paths, userSaved = false) {
+
+    const { recPath } = paths;
+    if (userSaved) {
+        dir = JSON.parse(fs.readFileSync(recPath));
+
+        let savedDir = [];
+        Object.keys(dir).map(i => {
+            let obj = { [i]: dir[i] };
+            savedDir.push(obj);
+        });
+        dir = savedDir;
+        if (dir.length === 0) {
+            await recipes(paths);
+            return;
+        }
+    }
+
+    const parsedResults = [{
+        name: 'recipe',
+        type: 'select',
+        message: 'Select a recipe',
+        limit: 10,
+        choices: ["⬅️ Go Back", ...dir.map(i => {
+            let key = i[Object.keys(i)[0]]
+            // console.dir(i, { depth: null });
+            // console.log("========================");
+            return {
+                name: `🍜 ${key.title}`,
+                hint: `\n  ⚠️  Need ${key.missedIngredientCount}: ` + "" + key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
+            };
+        })]
+    }];
+
+    let selectedRecipe = await prompt(parsedResults);
+    let selectedRecipeName = selectedRecipe.recipe;
+
+    if (selectedRecipeName.includes("Back")) {
+        await recipes(paths);
+    } else {
+        if (userSaved) {
+            await showRecipe(selectedRecipeName, dir, paths, true);
+        } else {
+            await showRecipe(selectedRecipeName, dir, paths);
+        }
+    };
+};
+
+
+async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
     try {
         const { recPath } = paths;
         let selectedRecipe = {};
@@ -162,7 +213,11 @@ async function showRecipe(selectedRecipeName, dir, paths, saved = false) {
         switch (true) {
             case selectedRecipeOption.recipeOptions.includes("Remove"): {
                 await removeUserSavedRecipe(id, paths);
-                await showRecipe(selectedRecipeName, dir, paths);
+                if (userSaved) {
+                    await showRecipe(selectedRecipeName, dir, paths, true);
+                } else {
+                    await showRecipe(selectedRecipeName, dir, paths);
+                }
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("Save"): {
@@ -171,11 +226,20 @@ async function showRecipe(selectedRecipeName, dir, paths, saved = false) {
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("View"): {
-                await viewInstructions(dir, selectedRecipeName, paths);
+                //FIXME - SOMETHING TO DO WITH INSTRUCTIONS NOT BEING SHOWN
+                if (userSaved) {
+                    await viewInstructions(dir, selectedRecipeName, paths, true);
+                } else {
+                    await viewInstructions(dir, selectedRecipeName, paths);
+                }
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("Back"): {
-                await displayRecipeResults(dir, paths);
+                if (userSaved) {
+                    await displayRecipeResults(dir, paths, true);
+                } else {
+                    await displayRecipeResults(dir, paths);
+                }
                 break;
             }
             default: {
@@ -227,33 +291,7 @@ async function parseRecipeResultData(data) {
     })
 };
 
-async function displayRecipeResults(dir, paths) {
 
-    const parsedResults = [{
-        name: 'recipe',
-        type: 'select',
-        message: 'Select a recipe',
-        limit: 10,
-        choices: ["⬅️ Go Back", ...dir.map(i => {
-            let key = i[Object.keys(i)[0]]
-            // console.dir(i, { depth: null });
-            // console.log("========================");
-            return {
-                name: `🍜 ${key.title}`,
-                hint: `\n  ⚠️  Need ${key.missedIngredientCount}: ` + "" + key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
-            };
-        })]
-    }];
-
-    let selectedRecipe = await prompt(parsedResults);
-    let selectedRecipeName = selectedRecipe.recipe;
-
-    if (selectedRecipeName.includes("Back")) {
-        await recipes(paths);
-    } else {
-        await showRecipe(selectedRecipeName, dir, paths);
-    };
-};
 
 async function viewInstructions(dir, recipeName, paths, userSave = false) {
     try {
@@ -304,7 +342,7 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
                             savedData[id] = storedData[id];
                             await recipeUserSave(paths, savedData);
 
-                            await showRecipe(recipeName, dir, paths);
+                            await showRecipe(recipeName, dir, paths, true);
                         } else {
                             await displayIngredientAmount(storeObj)
                             await displaySteps(stepArr)
@@ -348,7 +386,7 @@ async function displayUserSavedRecipes(paths, data) {
     console.log("===============================");
     console.log("My Saved Recipes");
     console.log("===============================");
-    await displayRecipeResults(savedDir, paths);
+    await displayRecipeResults(savedDir, paths, true);
 };
 
 async function displaySteps(steps) {
