@@ -15,11 +15,9 @@ const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, M
 const environment = 'local';
 
 /*
-
 TODO: Add ability to save recipe upon viewing minor details
 ?       - View User Recipes
 ?       - Delete User Recipes
-
 */
 
 async function main() {
@@ -29,7 +27,7 @@ async function main() {
             ingPath: __dirname + '/cache/ingredients.json',
             recPath: __dirname + '/cache/saved_recipes.json',
             cachePath: __dirname + '/cache/recipe_cache.json'
-        }
+        };
 
         let { optPath, ingPath } = paths;
         let keyPresent = await checkApiKey(optPath);
@@ -54,7 +52,6 @@ async function main() {
                     break;
                 };
             };
-
         } else {
             await saveApiKey(optPath);
         };
@@ -81,6 +78,12 @@ async function findByIngredient(paths) {
                 });
 
                 let searchQueryIngredients = await prompt.run();
+
+
+                if (searchQueryIngredients.length === 0) {
+                    await recipes(paths);
+                }
+
                 let searchIngredientString = searchQueryIngredients.map(i => i.toLowerCase()).join(",+")
 
                 //? NETWORK REQUEST
@@ -114,7 +117,7 @@ async function findByIngredient(paths) {
     }
 };
 
-async function showRecipe(selectedRecipeName, dir, paths) {
+async function showRecipe(selectedRecipeName, dir, paths, saved = false) {
     try {
         const { recPath } = paths;
         let selectedRecipe = {};
@@ -129,7 +132,7 @@ async function showRecipe(selectedRecipeName, dir, paths) {
                 console.log(`===============================`);
                 console.log(`🍜 Name: ${key.title}`)
                 console.log(`👍 Likes: ${key.likes}`)
-                console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "))
+                console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
                 selectedRecipe = key;
             }
         });
@@ -146,11 +149,10 @@ async function showRecipe(selectedRecipeName, dir, paths) {
             ]
                 .map((i) => {
                     if (Object.keys(JSON.parse(fs.readFileSync(recPath))).includes(id)) {
-                        return i.name === "💾 Save" ? "❌ Remove From Saved" : i
+                        return i.name === "💾 Save" ? "❌ Remove From Saved" : i;
                     } else {
-                        return i
-                    }
-
+                        return i;
+                    };
                 })
         }]
 
@@ -159,12 +161,12 @@ async function showRecipe(selectedRecipeName, dir, paths) {
         switch (true) {
             case selectedRecipeOption.recipeOptions.includes("Remove"): {
                 await removeUserSavedRecipe(id, paths);
-                await showRecipe(selectedRecipeName, dir, paths)
+                await showRecipe(selectedRecipeName, dir, paths);
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("Save"): {
                 const userSave = true;
-                await viewInstructions(dir, selectedRecipeName, paths, userSave)
+                await viewInstructions(dir, selectedRecipeName, paths, userSave);
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("View"): {
@@ -191,7 +193,7 @@ async function removeUserSavedRecipe(id, paths) {
     fs.writeFileSync(recPath, JSON.stringify(storedRecipes));
     console.log(red("Recipe removed successfully!"));
 
-}
+};
 
 async function parseRecipeResultData(data) {
     return data.map(i => {
@@ -248,8 +250,8 @@ async function displayRecipeResults(dir, paths) {
     if (selectedRecipeName.includes("Back")) {
         await recipes(paths);
     } else {
-        await showRecipe(selectedRecipeName, dir, paths)
-    }
+        await showRecipe(selectedRecipeName, dir, paths);
+    };
 };
 
 async function viewInstructions(dir, recipeName, paths, userSave = false) {
@@ -334,21 +336,19 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
     } catch (err) {
         onCancel(err);
     }
-}
+};
 
 async function displayUserSavedRecipes(paths, data) {
     let savedDir = [];
     Object.keys(data).map(i => {
-        console.log(i);
-        let obj = { [i]: data[i] }
+        let obj = { [i]: data[i] };
         savedDir.push(obj);
     });
     console.log("===============================");
     console.log("My Saved Recipes");
     console.log("===============================");
-    await displayRecipeResults(savedDir, paths)
-
-}
+    await displayRecipeResults(savedDir, paths);
+};
 
 async function displaySteps(steps) {
     steps.map((i, idx) => {
@@ -399,9 +399,7 @@ async function getRecipeInstructions(recipeId, k) {
 async function recipes(paths) {
     let { ingPath, recPath, cachePath, optPath } = paths
     if (fs.existsSync(recPath)) {
-
         let data = JSON.parse(fs.readFileSync(recPath));
-
         let choices = [
             '🔍 Find by ingredient/s',
             // '💾 Save',
@@ -421,7 +419,8 @@ async function recipes(paths) {
             choices: choices
         });
 
-        const choice = await option.run()
+        const choice = await option.run();
+
         switch (true) {
             case choice.includes("Find by"): {
                 await findByIngredient(paths);
@@ -441,7 +440,7 @@ async function recipes(paths) {
             }
             default: {
                 break;
-            }
+            };
         };
     } else {
         fs.writeFileSync(recPath, JSON.stringify({}), "utf8");
