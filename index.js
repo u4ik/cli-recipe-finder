@@ -17,6 +17,7 @@ const environment = 'local';
 /*
 TODO: Add ability to save recipe upon viewing minor details
 ?       - View User Recipes
+!         - BUG: User view menu, - when recipe is deleted and reverting back a menu, it is not updated with the current user recipe's  
 ?       - Delete User Recipes
 */
 
