@@ -12,13 +12,12 @@ import pkg from 'kleur';
 const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
 
-const environment = 'local';
+const devEnv = true;
 
 /*
 TODO: Add ability to save recipe upon viewing minor details
-?       - View User Recipes
-!         - BUG: User view menu, - when recipe is deleted and reverting back a menu, it is not updated with the current user recipe's  
-?       - Delete User Recipes
+?       - Check all local ingredients with saved recipes
+!BUG:   - When viewing saved recipes... if 'Remove' is selected, then 'Save', then 'Remove'. The going back will not refresh user saved list
 */
 
 async function main() {
@@ -61,7 +60,6 @@ async function main() {
         onCancel(err);
     };
 };
-
 async function findByIngredient(paths) {
     try {
         let { ingPath, recPath, cachePath, optPath } = paths
@@ -88,18 +86,20 @@ async function findByIngredient(paths) {
 
                 let searchIngredientString = searchQueryIngredients.map(i => i.toLowerCase()).join(",+")
 
-                //? NETWORK REQUEST
 
-                // const findByIngredients = (await (await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${searchIngredientString}`, {
-                //     method: 'GET',
-                //     headers: {
-                //         "x-api-key": k
-                //     }
-                // })).json())
-
-                //? LOCAL REQUEST
-
-                let findByIngredients = JSON.parse(fs.readFileSync(__dirname + "/mockGetByIngredients.json"));
+                let findByIngredients;
+                if (!devEnv) {
+                    //? NETWORK REQUEST
+                    findByIngredients = (await (await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${searchIngredientString}`, {
+                        method: 'GET',
+                        headers: {
+                            "x-api-key": k
+                        }
+                    })).json())
+                } else {
+                    //? LOCAL REQUEST
+                    findByIngredients = JSON.parse(fs.readFileSync(__dirname + "/mockGetByIngredients.json"));
+                }
 
                 let dir = await parseRecipeResultData(findByIngredients);
 
@@ -118,12 +118,13 @@ async function findByIngredient(paths) {
         onCancel(err);
     }
 };
-
-
 async function displayRecipeResults(dir, paths, userSaved = false) {
 
     const { recPath } = paths;
     if (userSaved) {
+        console.log("===============================");
+        console.log("My Saved Recipes");
+        console.log("===============================");
         dir = JSON.parse(fs.readFileSync(recPath));
 
         let savedDir = [];
@@ -136,6 +137,10 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
             await recipes(paths);
             return;
         }
+    } else {
+        console.log("===============================");
+        console.log("Found Recipes");
+        console.log("===============================");
     }
 
     const parsedResults = [{
@@ -164,7 +169,7 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
             await showRecipe(selectedRecipeName, dir, paths, true);
         } else {
             await showRecipe(selectedRecipeName, dir, paths);
-        }
+        };
     };
 };
 
@@ -178,7 +183,6 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
             let key = i[Object.keys(i)[0]];
             if (`🍜 ${key.title}` === selectedRecipeName) {
                 id = Object.keys(i)[0];
-
                 console.log(`===============================`);
                 console.log(`Recipe`);
                 console.log(`===============================`);
@@ -206,7 +210,7 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                         return i;
                     };
                 })
-        }]
+        }];
 
         let selectedRecipeOption = await prompt(selectedRecipeOptions);
 
@@ -222,13 +226,16 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
             }
             case selectedRecipeOption.recipeOptions.includes("Save"): {
                 const userSave = true;
-                await viewInstructions(dir, selectedRecipeName, paths, userSave);
+                if (userSaved) {
+                    await viewInstructions(dir, selectedRecipeName, paths, userSave, userSaved);
+                } else {
+                    await viewInstructions(dir, selectedRecipeName, paths, userSave);
+                }
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("View"): {
-                //FIXME - SOMETHING TO DO WITH INSTRUCTIONS NOT BEING SHOWN
                 if (userSaved) {
-                    await viewInstructions(dir, selectedRecipeName, paths, true);
+                    await viewInstructions(dir, selectedRecipeName, paths, false, userSaved);
                 } else {
                     await viewInstructions(dir, selectedRecipeName, paths);
                 }
@@ -247,9 +254,9 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
             }
         }
     } catch (err) {
-        onCancel(err)
+        onCancel(err);
     }
-}
+};
 
 async function removeUserSavedRecipe(id, paths) {
     const { recPath } = paths;
@@ -257,9 +264,7 @@ async function removeUserSavedRecipe(id, paths) {
     delete storedRecipes[id];
     fs.writeFileSync(recPath, JSON.stringify(storedRecipes));
     console.log(red("Recipe removed successfully!"));
-
 };
-
 async function parseRecipeResultData(data) {
     return data.map(i => {
         let servings = []
@@ -290,10 +295,7 @@ async function parseRecipeResultData(data) {
         }
     })
 };
-
-
-
-async function viewInstructions(dir, recipeName, paths, userSave = false) {
+async function viewInstructions(dir, recipeName, paths, userSave = false, userSavedList = false) {
     try {
         let { cachePath, optPath, recPath } = paths;
         let apiKey = JSON.parse(fs.readFileSync(optPath)).k
@@ -311,20 +313,25 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
                             await displayIngredientAmount(storedData[id])
                             await displaySteps(storedData[id].steps)
                         } else {
-
                             let savedData = JSON.parse(fs.readFileSync(recPath));
                             savedData[id] = storedData[id];
 
-                            // await recipeUserSave(paths, storedData);
                             await recipeUserSave(paths, savedData);
-                            await showRecipe(recipeName, dir, paths);
+                            if (userSavedList) {
+                                await showRecipe(recipeName, dir, paths, userSavedList);
+                            } else {
+                                await showRecipe(recipeName, dir, paths);
+                            }
                         }
                     } else {
-                        //? NETWORK REQUEST
-                        // const results = await getRecipeInstructions(id, apiKey)
-                        //? LOCAL DATA
-                        const results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'));
-
+                        let results;
+                        if (!devEnv) {
+                            results = await getRecipeInstructions(id, apiKey)
+                        } else {
+                            //? NETWORK REQUEST
+                            //? LOCAL DATA
+                            results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'));
+                        }
                         let storeObj;
 
                         let stepArr = [];
@@ -342,15 +349,17 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
                             savedData[id] = storedData[id];
                             await recipeUserSave(paths, savedData);
 
-                            await showRecipe(recipeName, dir, paths, true);
+                            if (userSavedList) {
+                                await showRecipe(recipeName, dir, paths, userSavedList);
+                            } else {
+                                await showRecipe(recipeName, dir, paths);
+                            }
                         } else {
-                            await displayIngredientAmount(storeObj)
-                            await displaySteps(stepArr)
+                            await displayIngredientAmount(storeObj);
+                            await displaySteps(stepArr);
                         }
-
                     }
                     if (!userSave) {
-
                         const goingBack = [{
                             name: '',
                             type: 'select',
@@ -361,17 +370,19 @@ async function viewInstructions(dir, recipeName, paths, userSave = false) {
                         const goBack = await prompt(goingBack);
 
                         if (goBack) {
-                            await showRecipe(recipeName, dir, paths);
+                            if (userSavedList) {
+                                await showRecipe(recipeName, dir, paths, userSavedList);
+                            } else {
+                                await showRecipe(recipeName, dir, paths);
+                            }
                         }
                     }
-
                 } else {
                     await recipeCacheSave(cachePath);
-                    await viewInstructions(dir, recipeName, paths, userSave);
+                    await viewInstructions(dir, recipeName, paths, userSave, userSavedList);
                 }
             }
         })
-
     } catch (err) {
         onCancel(err);
     }
@@ -383,18 +394,13 @@ async function displayUserSavedRecipes(paths, data) {
         let obj = { [i]: data[i] };
         savedDir.push(obj);
     });
-    console.log("===============================");
-    console.log("My Saved Recipes");
-    console.log("===============================");
     await displayRecipeResults(savedDir, paths, true);
 };
-
 async function displaySteps(steps) {
     steps.map((i, idx) => {
         console.log(`${idx === 0 ? "\n" : ""} ${idx + 1}:`, i, "\n")
     });
 };
-
 async function displayIngredientAmount(storeObj) {
     console.log(" ");
     console.log("===============================");
@@ -405,7 +411,6 @@ async function displayIngredientAmount(storeObj) {
         console.log(i);
     });
 };
-
 async function recipeUserSave(paths, storedData = {}) {
     const { recPath } = paths;
     if (Object.keys(storedData).length > 0) {
@@ -415,11 +420,9 @@ async function recipeUserSave(paths, storedData = {}) {
         fs.writeFileSync(recPath, JSON.stringify(storedData), "utf8");
     };
 };
-
 async function recipeCacheSave(cachePath, storedData = {}) {
     fs.writeFileSync(cachePath, JSON.stringify(storedData), "utf8");
 };
-
 async function getRecipeInstructions(recipeId, k) {
     try {
         const results = await (await fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions`, {
@@ -433,23 +436,20 @@ async function getRecipeInstructions(recipeId, k) {
     } catch (err) {
         onCancel(err);
     }
-}
-
+};
 async function recipes(paths) {
     let { ingPath, recPath, cachePath, optPath } = paths
     if (fs.existsSync(recPath)) {
         let data = JSON.parse(fs.readFileSync(recPath));
         let choices = [
             '🔍 Find by ingredient/s',
-            // '💾 Save',
             '📃 View Saved',
-            '🗑️ Delete',
             "⬅️ Go Back"
         ].map(i => {
             if (Object.keys(data).length > 0) {
                 return i;
             } else {
-                return i != '🗑️ Delete' && i != '📃 View Saved' ? i : '';
+                return i != '📃 View Saved' ? i : '';
             };
         }).filter(i => i);
         const option = new Select({
@@ -469,10 +469,6 @@ async function recipes(paths) {
                 await displayUserSavedRecipes(paths, data);
                 break;
             }
-            case choice.includes("Delete"): {
-                console.log('delete');
-                break;
-            }
             case choice.includes("Back"): {
                 main();
                 break;
@@ -486,7 +482,6 @@ async function recipes(paths) {
         await recipes(paths);
     }
 };
-
 async function ingredients(path) {
     if (fs.existsSync(path)) {
 
@@ -536,7 +531,6 @@ async function ingredients(path) {
         addIngredients(path);
     };
 };
-
 async function viewIngredients(path) {
     if (fs.existsSync(path)) {
         let data = JSON.parse(fs.readFileSync(path)).sort();
@@ -550,7 +544,6 @@ async function viewIngredients(path) {
         console.log("No ingredient/s found.");
     };
 };
-
 async function mainMenu() {
     const option = new Select({
         name: 'option',
@@ -560,7 +553,6 @@ async function mainMenu() {
 
     return option.run();
 }
-
 async function saveApiKey(path) {
     try {
         const auth = new Password({
@@ -581,7 +573,6 @@ async function saveApiKey(path) {
         onCancel(err);
     };
 };
-
 async function setup(path) {
     const choice = new Toggle({
         // name: 'question',
@@ -595,7 +586,6 @@ async function setup(path) {
         await main();
     }
 };
-
 async function checkApiKey(path) {
     if (fs.existsSync(path)) {
         let data = JSON.parse(fs.readFileSync(path, "utf8"));
@@ -608,7 +598,6 @@ async function checkApiKey(path) {
         return false;
     };
 };
-
 async function delIngredients(path) {
 
     if (fs.existsSync(path)) {
@@ -629,7 +618,6 @@ async function delIngredients(path) {
         await viewIngredients(path);
     }
 };
-
 async function addIngredients(path) {
 
     const prompt = new List({
@@ -652,7 +640,6 @@ async function addIngredients(path) {
 
     await viewIngredients(path);
 };
-
 async function confirmDelete() {
     const choice = new Confirm({
         name: 'question',
@@ -660,7 +647,6 @@ async function confirmDelete() {
     });
     return choice.run();
 };
-
 function onCancel(err = '') {
     // console.clear();
     if (err != '') {
@@ -670,5 +656,4 @@ function onCancel(err = '') {
     console.log(err);
     // process.exit();
 };
-
 main();
