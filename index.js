@@ -22,6 +22,12 @@ const devEnv = false;
 */
 async function main() {
     try {
+
+        if (fs.existsSync(__dirname + "/cache") === false) {
+            fs.mkdirSync(__dirname + "/cache")
+        }
+
+
         const paths = {
             optPath: __dirname + '/cache/options.json',
             ingPath: __dirname + '/cache/ingredients.json',

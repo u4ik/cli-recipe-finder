@@ -3,3 +3,4 @@ cache/*
 
 mockGetByIngredients.json
 mockGetDetailedInstructions.json
+cache.bak/
