@@ -3,7 +3,7 @@
   "version": "1.0.6",
   "description": "",
   "bin": {
-    "recipefinder": "node index.js"
+    "recipefinder": "index.js"
   },
   "engines": {
     "node": ">=10"
