@@ -6,6 +6,7 @@ Welcome to RecipeFinder, a delightful console application for all your culinary 
 
 - [Installation](#installation)
 - [Getting Started](#getting-started)
+  - [Usage](#usage)
   - [Setting Up Your API Key](#setting-up-your-api-key)
   - [Managing Ingredients](#managing-ingredients)
   - [Searching for Recipes](#searching-for-recipes)
@@ -24,6 +25,12 @@ Now, you're ready to cook up some magic in your terminal!
 ## 🍳 Getting Started
 
 Before you dive into the world of recipes, make sure you have your Spoonacular API key handy. If you don't have one yet, you can get it by signing up at [Spoonacular API](https://spoonacular.com/food-api/console#Dashboard).
+
+### Usage
+
+```bash
+recipefinder
+```
 
 ### Setting Up Your API Key
 
