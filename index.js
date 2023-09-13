@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+//^ gets removed?
+
 import terminalImage from 'terminal-image';
 import got from 'got';
 import fs, { existsSync } from "fs";
