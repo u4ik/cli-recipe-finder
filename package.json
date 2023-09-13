@@ -1,6 +1,6 @@
 {
   "name": "recipefinder",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "",
   "bin": {
     "recipefinder": "index.js"
