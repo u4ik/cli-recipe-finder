@@ -43,7 +43,3 @@ Follow the on-screen instructions to select ingredients, and RecipeFinder will s
 Found a recipe that you love and want to revisit later? RecipeFinder lets you save your favorite recipes for future reference. After searching for a recipe, you'll have the option to save it.
 
 Bon appétit! 🍽️👨‍🍳👩‍🍳
-
-```
-
-```
