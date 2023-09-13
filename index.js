@@ -29,6 +29,9 @@ async function main() {
             cachePath: __dirname + '/cache/recipe_cache.json'
         };
 
+
+        console.log(__dirname);
+
         let { optPath, ingPath } = paths;
         let keyPresent = await checkApiKey(optPath);
 
