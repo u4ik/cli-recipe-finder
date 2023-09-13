@@ -15,10 +15,7 @@ const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, M
 const devEnv = false;
 /*
 TODO: Add ability to save recipe upon viewing minor details
-?       - Cached recipes use cached 'missing ingredients'- would be nice to update them on each fetch. For example:
-?                User does fetch with apples. Missing ing shows cinnamon.
-?                User goes back, adds cinnamon. Does another search with just apples, and cinnamon.
-?                The cache may pull up older recipe with cinnamon still considered missing
+
 ?               
 */
 async function main() {
@@ -161,10 +158,9 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
                 // let missingIngArray = key.missedIngredients.map(i => i.name)
 
                 let usedIngFilter = key.usedIngredients.filter(i => ingArray.includes(i.name) ? null : i);
-                let getMissing = key.missedIngredients.filter(i => ingArray.includes(i.name) ? null : i)
+                let getMissing = key.missedIngredients.filter(i => ingArray.includes(i.name) ? null : i);
 
-                let filtered = [...usedIngFilter, ...getMissing]
-
+                let filtered = [...usedIngFilter, ...getMissing];
 
                 let newMissingIngCount = filtered.length;
 
@@ -175,7 +171,7 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
 
                 // console.log(key.missingIngFromUserSaved);
 
-                hint = `\n  ⚠️  Need ${newMissingIngCount}: ` + "" + filtered.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
+                hint = `\n  ⚠️  Need ${newMissingIngCount}: ` + "" + filtered.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ");
 
                 if (newMissingIngCount == 0) {
                     hint = `\n  ✅  All ingredients present`;
@@ -222,9 +218,20 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
 
 
                 if (!userSaved) {
-                    console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
+
+                    if (key.missedIngredients.length == 0) {
+
+                    } else {
+
+                        console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
+                    }
                 } else {
-                    console.log(red("⚠️ Missing:"), key.missingIngFromUserSaved.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
+
+                    if (key.missedIngredientFromUserSaved.length == 0) {
+
+                    } else {
+                        console.log(red("⚠️ Missing:"), key.missingIngFromUserSaved.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
+                    }
                 }
                 selectedRecipe = key;
             }
