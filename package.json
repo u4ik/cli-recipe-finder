@@ -1,12 +1,23 @@
 {
   "name": "recipefinder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "recipe",
+    "npm",
+    "package",
+    "u4ik",
+    "cli_recipe",
+    "cooking",
+    "baking",
+    "cook",
+    "dish",
+    "ingredients"
+  ],
   "author": "u4ik",
   "type": "module",
   "license": "ISC",
@@ -23,17 +34,5 @@
   "bugs": {
     "url": "https://github.com/u4ik/cli-recipe-finder/issues"
   },
-  "homepage": "https://github.com/u4ik/cli-recipe-finder/blob/main/README.md",
-  "keywords": [
-    "recipe",
-    "npm",
-    "package",
-    "u4ik",
-    "cli_recipe",
-    "cooking",
-    "baking",
-    "cook",
-    "dish",
-    "ingredients"
-  ]
+  "homepage": "https://github.com/u4ik/cli-recipe-finder/blob/main/README.md"
 }
