@@ -687,7 +687,11 @@ async function addIngredients(path) {
         let tmpArr = [...oldData, ...newData];
         let noDupesArr = [...new Set([...tmpArr])].filter(n => n).sort();
 
-        noDupesArr = noDupesArr.map(i => i.toLowerCase());
+        noDupesArr = noDupesArr.map(i => {
+            if (i.length > 0) {
+                return i.toLowerCase()
+            }
+        });
         fs.writeFileSync(path, JSON.stringify(noDupesArr), "utf8");
     } else {
         fs.writeFileSync(path, JSON.stringify(await prompt.run()), "utf8");
