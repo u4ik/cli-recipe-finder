@@ -25,8 +25,7 @@ async function main() {
 
         if (fs.existsSync(__dirname + "/cache") === false) {
             fs.mkdirSync(__dirname + "/cache")
-        }
-
+        };
 
         const paths = {
             optPath: __dirname + '/cache/options.json',
@@ -91,6 +90,8 @@ async function findByIngredient(paths) {
                 if (searchQueryIngredients.length === 0) {
                     console.log(red("Select some ingredients!"));
                     await recipes(paths);
+                    return;
+
                 }
 
                 let searchIngredientString = searchQueryIngredients.map(i => i.toLowerCase()).join(",+")
@@ -600,7 +601,9 @@ async function mainMenu() {
     const option = new Select({
         name: 'option',
         message: 'Select an option',
-        choices: ['🍞 Ingredients', '📝 Recipes', '⚙️ Setup', '❔ About', '❌ Exit']
+        choices: ['🍞 Ingredients', '📝 Recipes', '⚙️ Setup',
+            // '❔ About',
+            '❌ Exit']
     });
 
     return option.run();
