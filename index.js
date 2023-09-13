@@ -589,6 +589,7 @@ async function viewIngredients(path) {
         let data = JSON.parse(fs.readFileSync(path)).sort();
         if (data.length > 0) {
             console.log("---------------------");
+
             data.forEach(i => console.log(i[0].toUpperCase() + i.substr(1, i.length)));
             console.log("");
         }
