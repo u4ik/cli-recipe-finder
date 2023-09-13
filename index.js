@@ -34,9 +34,6 @@ async function main() {
             cachePath: __dirname + '/cache/recipe_cache.json'
         };
 
-
-        console.log(__dirname);
-
         let { optPath, ingPath } = paths;
         let keyPresent = await checkApiKey(optPath);
 
@@ -620,7 +617,7 @@ async function saveApiKey(path) {
 
         fs.writeFileSync(path, JSON.stringify({ k: apiInput }), "utf8");
 
-        console.log(`Api Key Saved in: ${path.replace('/', "\\")} \n`);
+        console.log(`Api Key Saved in: ${path.replaceAll('/', "\\")} \n`);
 
         main();
 
