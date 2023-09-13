@@ -14,7 +14,6 @@ const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, M
 
 const devEnv = false;
 /*
-TODO: Add ability to save recipe upon viewing minor details
 
 ?               
 */
