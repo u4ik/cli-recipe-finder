@@ -15,5 +15,25 @@
     "got": "^13.0.0",
     "kleur": "^4.1.5",
     "terminal-image": "^2.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/u4ik/cli-recipe-finder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/u4ik/cli-recipe-finder/issues"
+  },
+  "homepage": "https://github.com/u4ik/cli-recipe-finder/blob/main/README.md",
+  "keywords": [
+    "recipe",
+    "npm",
+    "package",
+    "u4ik",
+    "cli_recipe",
+    "cooking",
+    "baking",
+    "cook",
+    "dish",
+    "ingredients"
+  ]
 }
