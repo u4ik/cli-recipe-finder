@@ -222,12 +222,11 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                     if (key.missedIngredients.length == 0) {
 
                     } else {
-
                         console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
                     }
                 } else {
 
-                    if (key.missedIngredientFromUserSaved.length == 0) {
+                    if (key.missingIngFromUserSaved.length == 0) {
 
                     } else {
                         console.log(red("⚠️ Missing:"), key.missingIngFromUserSaved.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
