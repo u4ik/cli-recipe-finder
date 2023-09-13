@@ -71,10 +71,10 @@ async function main() {
 async function findByIngredient(paths) {
     try {
         let { ingPath, recPath, cachePath, optPath } = paths
-        let data = JSON.parse(fs.readFileSync(ingPath));
         let { k } = JSON.parse(fs.readFileSync(optPath));
 
         if (fs.existsSync(ingPath)) {
+            let data = JSON.parse(fs.readFileSync(ingPath));
             if (data.length > 0) {
 
                 const prompt = new MultiSelect({
