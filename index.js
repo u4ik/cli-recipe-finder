@@ -12,7 +12,7 @@ import pkg from 'kleur';
 const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
 
-const devEnv = true;
+const devEnv = false;
 /*
 TODO: Add ability to save recipe upon viewing minor details
 ?       - Cached recipes use cached 'missing ingredients'- would be nice to update them on each fetch. For example:
@@ -176,6 +176,14 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
                 // console.log(key.missingIngFromUserSaved);
 
                 hint = `\n  ⚠️  Need ${newMissingIngCount}: ` + "" + filtered.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
+
+                if (newMissingIngCount == 0) {
+                    hint = `\n  ✅  All ingredients present`;
+                }
+            }
+
+            if (key.missedIngredientCount == 0) {
+                hint = `\n  ✅  All ingredients present`;
             }
             return {
                 name: `🍜 ${key.title}`,
