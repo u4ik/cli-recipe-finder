@@ -5,37 +5,30 @@ import got from 'got';
 import fs, { existsSync } from "fs";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import fetch from "node-fetch";
+import pkg from 'kleur';
 const cRequire = createRequire(import.meta.url);
 import { createRequire } from "module";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-import fetch from "node-fetch";
-import pkg from 'kleur';
 const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
 
 const devEnv = false;
-/*
 
-?               
-*/
 async function main() {
     try {
-
         if (fs.existsSync(__dirname + "/cache") === false) {
             fs.mkdirSync(__dirname + "/cache")
         };
-
         const paths = {
             optPath: __dirname + '/cache/options.json',
             ingPath: __dirname + '/cache/ingredients.json',
             recPath: __dirname + '/cache/saved_recipes.json',
             cachePath: __dirname + '/cache/recipe_cache.json'
         };
-
         let { optPath, ingPath } = paths;
         let keyPresent = await checkApiKey(optPath);
-
         if (keyPresent) {
             const menuOption = await mainMenu();
             switch (true) {
@@ -68,31 +61,22 @@ async function findByIngredient(paths) {
     try {
         let { ingPath, recPath, cachePath, optPath } = paths
         let { k } = JSON.parse(fs.readFileSync(optPath));
-
         if (fs.existsSync(ingPath)) {
             let data = JSON.parse(fs.readFileSync(ingPath));
             if (data.length > 0) {
-
                 const prompt = new MultiSelect({
                     name: 'value',
                     message: 'Select ingredients to use in search',
                     limit: 10,
                     choices: data.map(i => i[0].toUpperCase() + i.substr(1, i.length))
                 });
-
                 let searchQueryIngredients = await prompt.run();
-
-
                 if (searchQueryIngredients.length === 0) {
                     console.log(red("Select some ingredients!"));
                     await recipes(paths);
                     return;
-
                 }
-
                 let searchIngredientString = searchQueryIngredients.map(i => i.toLowerCase()).join(",+")
-
-
                 let findByIngredients;
                 if (!devEnv) {
                     //? NETWORK REQUEST
@@ -106,12 +90,8 @@ async function findByIngredient(paths) {
                     //? LOCAL REQUEST
                     findByIngredients = JSON.parse(fs.readFileSync(__dirname + "/mockGetByIngredients.json"));
                 }
-
                 let dir = await parseRecipeResultData(findByIngredients);
-
                 await displayRecipeResults(dir, paths);
-
-                // await recipes(iPath, rPath, rCachePath, optPath);
             } else {
                 console.log(red("No ingredients found... \n > Add them from the 'Ingredients' menu item. "));
                 await recipes(paths);
@@ -125,14 +105,12 @@ async function findByIngredient(paths) {
     }
 };
 async function displayRecipeResults(dir, paths, userSaved = false) {
-
     const { recPath, ingPath } = paths;
     if (userSaved) {
         console.log("===============================");
         console.log("My Saved Recipes");
         console.log("===============================");
         dir = JSON.parse(fs.readFileSync(recPath));
-
         let savedDir = [];
         Object.keys(dir).map(i => {
             let obj = { [i]: dir[i] };
@@ -148,7 +126,6 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
         console.log("Found Recipes");
         console.log("===============================");
     }
-
     const parsedResults = [{
         name: 'recipe',
         type: 'select',
@@ -159,33 +136,18 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
             // console.dir(i, { depth: null });
             // console.log("========================");
             let hint = `\n  ⚠️  Need ${key.missedIngredientCount}: ` + "" + key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
-
             if (userSaved) {
                 let ingArray = JSON.parse(fs.readFileSync(ingPath));
-                // let usedIngArray = key.usedIngredients.map(i => i.name);
-                // let missingIngArray = key.missedIngredients.map(i => i.name)
-
                 let usedIngFilter = key.usedIngredients.filter(i => ingArray.includes(i.name) ? null : i);
                 let getMissing = key.missedIngredients.filter(i => ingArray.includes(i.name) ? null : i);
-
                 let filtered = [...usedIngFilter, ...getMissing];
-
                 let newMissingIngCount = filtered.length;
-
-                // console.log({ filtered });
-                // console.log(newMissingIngCount);
-
                 key.missingIngFromUserSaved = filtered;
-
-                // console.log(key.missingIngFromUserSaved);
-
                 hint = `\n  ⚠️  Need ${newMissingIngCount}: ` + "" + filtered.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ");
-
                 if (newMissingIngCount == 0) {
                     hint = `\n  ✅  All ingredients present`;
                 }
             }
-
             if (key.missedIngredientCount == 0) {
                 hint = `\n  ✅  All ingredients present`;
             }
@@ -195,10 +157,8 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
             };
         })]
     }];
-
     let selectedRecipe = await prompt(parsedResults);
     let selectedRecipeName = selectedRecipe.recipe;
-
     if (selectedRecipeName.includes("Back")) {
         await recipes(paths);
     } else {
@@ -221,19 +181,15 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                 console.log(`===============================`);
                 console.log(`Recipe`);
                 console.log(`===============================`);
-                console.log(`🍜 Name: ${key.title}`)
-                console.log(`👍 Likes: ${key.likes}`)
-
-
+                console.log(`🍜 Name: ${key.title}`);
+                console.log(`👍 Likes: ${key.likes}`);
                 if (!userSaved) {
-
                     if (key.missedIngredients.length == 0) {
 
                     } else {
                         console.log(red("⚠️ Missing:"), key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", "));
                     }
                 } else {
-
                     if (key.missingIngFromUserSaved.length == 0) {
 
                     } else {
@@ -243,7 +199,6 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                 selectedRecipe = key;
             }
         });
-
         const selectedRecipeOptions = [{
             name: 'recipeOptions',
             type: 'select',
@@ -262,9 +217,7 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                     };
                 })
         }];
-
         let selectedRecipeOption = await prompt(selectedRecipeOptions);
-
         switch (true) {
             case selectedRecipeOption.recipeOptions.includes("Remove"): {
                 await removeUserSavedRecipe(id, paths);
@@ -349,15 +302,12 @@ async function viewInstructions(dir, recipeName, paths, userSave = false, userSa
     try {
         let { cachePath, optPath, recPath } = paths;
         let apiKey = JSON.parse(fs.readFileSync(optPath)).k
-
         dir.map(async i => {
             let key = i[Object.keys(i)[0]];
             let id = Object.keys(i)[0]
             if (`🍜 ${key.title}` === recipeName) {
-
                 if (fs.existsSync(cachePath)) {
                     let storedData = JSON.parse(fs.readFileSync(cachePath));
-
                     if (storedData[id]) {
                         if (!userSave) {
                             await displayIngredientAmount(storedData[id])
@@ -383,22 +333,17 @@ async function viewInstructions(dir, recipeName, paths, userSave = false, userSa
                             results = JSON.parse(fs.readFileSync('./mockGetDetailedInstructions.json'));
                         }
                         let storeObj;
-
                         let stepArr = [];
                         results[0].steps.map(i => {
                             stepArr.push(i.step)
                             storeObj = { ...key, steps: stepArr }
                         });
-
                         storedData[id] = storeObj;
-
                         await recipeCacheSave(cachePath, storedData);
                         if (userSave) {
                             let savedData = JSON.parse(fs.readFileSync(recPath));
-
                             savedData[id] = storedData[id];
                             await recipeUserSave(paths, savedData);
-
                             if (userSavedList) {
                                 await showRecipe(recipeName, dir, paths, userSavedList);
                             } else {
@@ -416,9 +361,7 @@ async function viewInstructions(dir, recipeName, paths, userSave = false, userSa
                             message: '',
                             choices: ["⬅️ Go Back"]
                         }];
-
                         const goBack = await prompt(goingBack);
-
                         if (goBack) {
                             if (userSavedList) {
                                 await showRecipe(recipeName, dir, paths, userSavedList);
@@ -480,7 +423,6 @@ async function getRecipeInstructions(recipeId, k) {
                 "x-api-key": k
             }
         })).json()
-
         return results;
     } catch (err) {
         onCancel(err);
@@ -506,9 +448,7 @@ async function recipes(paths) {
             message: 'Select an option',
             choices: choices
         });
-
         const choice = await option.run();
-
         switch (true) {
             case choice.includes("Find by"): {
                 await findByIngredient(paths);
@@ -533,9 +473,7 @@ async function recipes(paths) {
 };
 async function ingredients(path) {
     if (fs.existsSync(path)) {
-
         let data = JSON.parse(fs.readFileSync(path));
-
         let choices = [
             '📃 View Saved',
             '➕ Add',
@@ -547,13 +485,11 @@ async function ingredients(path) {
                     return i != '🗑️ Delete' && i != '📃 View Saved' ? i : ''
                 };
             }).filter(i => i);
-
         const option = new Select({
             name: 'option',
             message: 'Select an option',
             choices: choices
         });
-
         const choice = await option.run()
         switch (true) {
             case choice.includes("Add"): {
@@ -602,7 +538,6 @@ async function mainMenu() {
             // '❔ About',
             '❌ Exit']
     });
-
     return option.run();
 }
 async function saveApiKey(path) {
@@ -611,15 +546,10 @@ async function saveApiKey(path) {
             name: 'password',
             message: 'Please enter your api key from https://spoonacular.com/food-api/console#Profile. It will be saved locally.',
         });
-
         let apiInput = await auth.run();
-
         fs.writeFileSync(path, JSON.stringify({ k: apiInput }), "utf8");
-
         console.log(`Api Key Saved in: ${path.replaceAll('/', "\\")} \n`);
-
         main();
-
     } catch (err) {
         console.log(err);
         onCancel(err);
@@ -651,7 +581,6 @@ async function checkApiKey(path) {
     };
 };
 async function delIngredients(path) {
-
     if (fs.existsSync(path)) {
         let data = JSON.parse(fs.readFileSync(path))
         const prompt = new MultiSelect({
@@ -660,9 +589,7 @@ async function delIngredients(path) {
             limit: 10,
             choices: data.map(i => i[0].toUpperCase() + i.substr(1, i.length))
         });
-
         let toBeRemoved = await prompt.run();
-
         if (toBeRemoved.length > 0) {
             let newData = data.filter(i => !toBeRemoved.map(i => i.toLowerCase()).includes(i));
             fs.writeFileSync(path, JSON.stringify(newData), "utf8");
@@ -676,13 +603,11 @@ async function addIngredients(path) {
         name: 'keywords',
         message: 'List out the ingredients, comma-separated if multiple'
     });
-
     if (fs.existsSync(path)) {
         let oldData = JSON.parse(fs.readFileSync(path));
         let newData = await prompt.run();
         let tmpArr = [...oldData, ...newData];
         let noDupesArr = [...new Set([...tmpArr])].filter(n => n).sort();
-
         noDupesArr = noDupesArr.map(i => {
             if (i.length > 0) {
                 return i.toLowerCase()
@@ -693,7 +618,6 @@ async function addIngredients(path) {
         fs.writeFileSync(path, JSON.stringify(await prompt.run()), "utf8");
         console.log('File created for ingredients');
     };
-
     await viewIngredients(path);
 };
 async function confirmDelete() {
