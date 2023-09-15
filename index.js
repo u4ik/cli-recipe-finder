@@ -15,6 +15,7 @@ const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
 
 const devEnv = false;
+const resultNum = 20;
 
 async function main() {
     try {
@@ -80,7 +81,7 @@ async function findByIngredient(paths) {
                 let findByIngredients;
                 if (!devEnv) {
                     //? NETWORK REQUEST
-                    findByIngredients = (await (await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${searchIngredientString}`, {
+                    findByIngredients = (await (await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${searchIngredientString}&number=${resultNum}`, {
                         method: 'GET',
                         headers: {
                             "x-api-key": k
