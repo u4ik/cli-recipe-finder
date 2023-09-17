@@ -3,6 +3,7 @@
 import terminalImage from 'terminal-image';
 import got from 'got';
 import fs, { existsSync } from "fs";
+import os from "os";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fetch from "node-fetch";
@@ -13,9 +14,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
-
+const download = cRequire('image-downloader');
+const { exec } = cRequire('child_process');
 const devEnv = false;
 const resultNum = 20;
+
+// const PowerShell = cRequire("powershell");
 
 async function main() {
     try {
@@ -172,17 +176,23 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
 };
 async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
     try {
+
         const { recPath } = paths;
         let selectedRecipe = {};
         let id;
-        dir.map(i => {
+        dir.map(async i => {
             let key = i[Object.keys(i)[0]];
             if (`🍜 ${key.title}` === selectedRecipeName) {
                 id = Object.keys(i)[0];
                 console.log(`===============================`);
                 console.log(`Recipe`);
                 console.log(`===============================`);
+
+                // const recipeImg = await got(key.img).buffer();
+                // console.log(await terminalImage.buffer(recipeImg, { width: '20%', height: '20%', maximumFrameRate: 10 }))
+
                 console.log(`🍜 Name: ${key.title}`);
+                console.log(`🖼️ Image: ${key.img}`)
                 console.log(`👍 Likes: ${key.likes}`);
                 if (!userSaved) {
                     if (key.missedIngredients.length == 0) {
@@ -200,6 +210,9 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                 selectedRecipe = key;
             }
         });
+
+        let userInfo = await checkTerminal();
+
         const selectedRecipeOptions = [{
             name: 'recipeOptions',
             type: 'select',
@@ -208,6 +221,7 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
             choices: [
                 { name: '💾 Save' },
                 { name: '📃 View Instructions' },
+                userInfo.System.Shell === "pwsh.exe" ? "🖼️ View Image" : null,
                 { name: "⬅️ Go Back" },
             ]
                 .map((i) => {
@@ -238,12 +252,22 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                 }
                 break;
             }
-            case selectedRecipeOption.recipeOptions.includes("View"): {
+            case selectedRecipeOption.recipeOptions.includes("View Instructions"): {
                 if (userSaved) {
                     await viewInstructions(dir, selectedRecipeName, paths, false, userSaved);
                 } else {
                     await viewInstructions(dir, selectedRecipeName, paths);
                 }
+                break;
+            }
+            case selectedRecipeOption.recipeOptions.includes("View Image"): {
+                const { img } = selectedRecipe
+                // Download Image:
+                downloadImage(img, __dirname + "/cache");
+
+                // Execute PS script to display image
+                displayPSImageWindow(dir, selectedRecipeName, paths, userSaved);
+
                 break;
             }
             case selectedRecipeOption.recipeOptions.includes("Back"): {
@@ -261,6 +285,54 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
     } catch (err) {
         onCancel(err);
     }
+};
+
+async function displayPSImageWindow(dir, selectedRecipeName, paths, userSaved) {
+    let imgPath = __dirname + "/cache/recipe.jpg";
+    // let ps = new PowerShell(__dirname + `/index.ps1 ${imgPath}`);
+    // ps.on("output", data => {
+    //     console.log(data);
+    // });
+
+    let parsedName = selectedRecipeName.split(" ").filter(i => i !== '🍜').join(" ");
+
+    exec(__dirname + `/index.ps1 ${imgPath} "${parsedName}"`, { shell: "pwsh.exe" }, (error, stdout, stderr) => {
+        if (error) {
+            // console.error(`error: ${error.message}`);
+            return;
+        };
+        if (stderr) {
+            // console.error(`stderr: ${stderr}`);
+            return;
+        };
+        // console.log(`stdout:\n${stdout}`);
+    });
+
+    if (userSaved) {
+        await showRecipe(selectedRecipeName, dir, paths, userSaved);
+    } else {
+        await showRecipe(selectedRecipeName, dir, paths);
+    };
+};
+function downloadImage(url, filepath) {
+    return download.image({
+        url,
+        dest: filepath + "/recipe.jpg"
+    });
+};
+async function checkTerminal() {
+    let userInfo = {
+        System: {
+            Name: os.userInfo().username,
+            Platform: process.platform,
+            OS: process.env.OS,
+            Shell: ""
+        }
+    };
+    if (userInfo.System.Platform.toLowerCase().includes("win")) {
+        userInfo.System.Shell = "pwsh.exe" || "cmd.exe";
+    };
+    return userInfo;
 };
 async function removeUserSavedRecipe(id, paths) {
     const { recPath } = paths;

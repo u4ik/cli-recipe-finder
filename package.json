@@ -30,9 +30,11 @@
   "dependencies": {
     "enquirer": "^2.4.1",
     "got": "^13.0.0",
+    "image-downloader": "^4.3.0",
     "kleur": "^4.1.5",
-    "terminal-image": "^2.0.0",
-    "node-fetch": "^3"
+    "node-fetch": "^3",
+    "powershell": "^2.3.2",
+    "terminal-image": "^2.0.0"
   },
   "repository": {
     "type": "git",
