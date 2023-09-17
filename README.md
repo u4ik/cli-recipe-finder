@@ -1,5 +1,15 @@
 # 🍽️ RecipeFinder Console Application
 
+<div align=center>
+
+<img  src='https://img.shields.io/npm/v/recipefinder.svg?style=flat'>
+
+<img  src='https://img.shields.io/npm/dt/recipefinder.svg?style=flat'>
+
+<img  src='https://img.shields.io/npm/l/recipefinder.svg?style=flat'>
+
+</div>
+
 Welcome to RecipeFinder, a delightful console application for all your culinary adventures! With RecipeFinder, you can discover new recipes, manage your ingredient list, and save your favorite recipes for later. Get ready to embark on a delicious journey with just a few keystrokes!
 
 ## 📝 Table of Contents
