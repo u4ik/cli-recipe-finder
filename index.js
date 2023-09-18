@@ -8,9 +8,11 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fetch from "node-fetch";
 import pkg from 'kleur';
-const cRequire = createRequire(import.meta.url);
+const cRequire = createRequire(
+    import.meta.url);
 import { createRequire } from "module";
-const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(
+    import.meta.url);
 const __dirname = dirname(__filename);
 const { green, red, blue } = pkg;
 const { prompt = prompt, Password, ArrayPrompt, Toggle, Select, Confirm, List, MultiSelect } = cRequire('enquirer');
@@ -37,22 +39,26 @@ async function main() {
         if (keyPresent) {
             const menuOption = await mainMenu();
             switch (true) {
-                case menuOption.includes("Setup"): {
-                    await setup(optPath);
-                    break;
-                }
-                case menuOption.includes("Ingredients"): {
-                    await ingredients(ingPath);
-                    break;
-                }
-                case menuOption.includes("Recipes"): {
-                    await recipes(paths);
-                    break;
-                }
-                default: {
-                    onCancel();
-                    break;
-                };
+                case menuOption.includes("Setup"):
+                    {
+                        await setup(optPath);
+                        break;
+                    }
+                case menuOption.includes("Ingredients"):
+                    {
+                        await ingredients(ingPath);
+                        break;
+                    }
+                case menuOption.includes("Recipes"):
+                    {
+                        await recipes(paths);
+                        break;
+                    }
+                default:
+                    {
+                        onCancel();
+                        break;
+                    };
             };
         } else {
             await saveApiKey(optPath);
@@ -118,7 +124,9 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
         dir = JSON.parse(fs.readFileSync(recPath));
         let savedDir = [];
         Object.keys(dir).map(i => {
-            let obj = { [i]: dir[i] };
+            let obj = {
+                [i]: dir[i]
+            };
             savedDir.push(obj);
         });
         dir = savedDir;
@@ -138,8 +146,8 @@ async function displayRecipeResults(dir, paths, userSaved = false) {
         limit: 10,
         choices: ["⬅️ Go Back", ...dir.map(i => {
             let key = i[Object.keys(i)[0]]
-            // console.dir(i, { depth: null });
-            // console.log("========================");
+                // console.dir(i, { depth: null });
+                // console.log("========================");
             let hint = `\n  ⚠️  Need ${key.missedIngredientCount}: ` + "" + key.missedIngredients.map(i => i.name[0].toUpperCase() + i.name.substring(1, i.name.length)).join(", ")
             if (userSaved) {
                 let ingArray = JSON.parse(fs.readFileSync(ingPath));
@@ -218,12 +226,16 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
             type: 'select',
             message: 'Recipe Info',
             limit: 10,
-            choices: [
-                { name: '💾 Save' },
-                { name: '📃 View Instructions' },
-                userInfo.System.Shell === "pwsh.exe" ? "🖼️ View Image" : null,
-                { name: "⬅️ Go Back" },
-            ]
+            choices: userInfo.System.Shell === "pwsh.exe" ? [
+                    { name: '💾 Save' },
+                    { name: '📃 View Instructions' },
+                    { name: "🖼️ View Image" },
+                    { name: "⬅️ Go Back" },
+                ] : [
+                    { name: '💾 Save' },
+                    { name: '📃 View Instructions' },
+                    { name: "⬅️ Go Back" },
+                ]
                 .map((i) => {
                     if (Object.keys(JSON.parse(fs.readFileSync(recPath))).includes(id)) {
                         return i.name === "💾 Save" ? "❌ Remove From Saved" : i;
@@ -234,53 +246,62 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
         }];
         let selectedRecipeOption = await prompt(selectedRecipeOptions);
         switch (true) {
-            case selectedRecipeOption.recipeOptions.includes("Remove"): {
-                await removeUserSavedRecipe(id, paths);
-                if (userSaved) {
-                    await showRecipe(selectedRecipeName, dir, paths, true);
-                } else {
-                    await showRecipe(selectedRecipeName, dir, paths);
+            case selectedRecipeOption.recipeOptions.includes("Remove"):
+                {
+                    await removeUserSavedRecipe(id, paths);
+                    if (userSaved) {
+                        await showRecipe(selectedRecipeName, dir, paths, true);
+                    } else {
+                        await showRecipe(selectedRecipeName, dir, paths);
+                    }
+                    break;
                 }
-                break;
-            }
-            case selectedRecipeOption.recipeOptions.includes("Save"): {
-                const userSave = true;
-                if (userSaved) {
-                    await viewInstructions(dir, selectedRecipeName, paths, userSave, userSaved);
-                } else {
-                    await viewInstructions(dir, selectedRecipeName, paths, userSave);
+            case selectedRecipeOption.recipeOptions.includes("Save"):
+                {
+                    const userSave = true;
+                    if (userSaved) {
+                        await viewInstructions(dir, selectedRecipeName, paths, userSave, userSaved);
+                    } else {
+                        await viewInstructions(dir, selectedRecipeName, paths, userSave);
+                    }
+                    break;
                 }
-                break;
-            }
-            case selectedRecipeOption.recipeOptions.includes("View Instructions"): {
-                if (userSaved) {
-                    await viewInstructions(dir, selectedRecipeName, paths, false, userSaved);
-                } else {
-                    await viewInstructions(dir, selectedRecipeName, paths);
+            case selectedRecipeOption.recipeOptions.includes("View Instructions"):
+                {
+                    if (userSaved) {
+                        await viewInstructions(dir, selectedRecipeName, paths, false, userSaved);
+                    } else {
+                        await viewInstructions(dir, selectedRecipeName, paths);
+                    }
+                    break;
                 }
-                break;
-            }
-            case selectedRecipeOption.recipeOptions.includes("View Image"): {
-                const { img } = selectedRecipe
-                // Download Image:
-                downloadImage(img, __dirname + "/cache");
+            case selectedRecipeOption.recipeOptions.includes("View Image"):
+                {
+                    const { img } = selectedRecipe
 
-                // Execute PS script to display image
-                displayPSImageWindow(dir, selectedRecipeName, paths, userSaved);
+                    // Use larger image size: 636x393.jpg
 
-                break;
-            }
-            case selectedRecipeOption.recipeOptions.includes("Back"): {
-                if (userSaved) {
-                    await displayRecipeResults(dir, paths, true);
-                } else {
-                    await displayRecipeResults(dir, paths);
+                    // Download Image:
+                    downloadImage(img, __dirname + "/cache");
+
+                    // Execute PS script to display image
+                    displayPSImageWindow(dir, selectedRecipeName, paths, userSaved);
+
+                    break;
                 }
-                break;
-            }
-            default: {
-                break;
-            }
+            case selectedRecipeOption.recipeOptions.includes("Back"):
+                {
+                    if (userSaved) {
+                        await displayRecipeResults(dir, paths, true);
+                    } else {
+                        await displayRecipeResults(dir, paths);
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
         }
     } catch (err) {
         onCancel(err);
@@ -314,6 +335,7 @@ async function displayPSImageWindow(dir, selectedRecipeName, paths, userSaved) {
         await showRecipe(selectedRecipeName, dir, paths);
     };
 };
+
 function downloadImage(url, filepath) {
     return download.image({
         url,
@@ -409,7 +431,7 @@ async function viewInstructions(dir, recipeName, paths, userSave = false, userSa
                         let stepArr = [];
                         results[0].steps.map(i => {
                             stepArr.push(i.step)
-                            storeObj = { ...key, steps: stepArr }
+                            storeObj = {...key, steps: stepArr }
                         });
                         storedData[id] = storeObj;
                         await recipeCacheSave(cachePath, storedData);
@@ -456,7 +478,9 @@ async function viewInstructions(dir, recipeName, paths, userSave = false, userSa
 async function displayUserSavedRecipes(paths, data) {
     let savedDir = [];
     Object.keys(data).map(i => {
-        let obj = { [i]: data[i] };
+        let obj = {
+            [i]: data[i]
+        };
         savedDir.push(obj);
     });
     await displayRecipeResults(savedDir, paths, true);
@@ -523,21 +547,25 @@ async function recipes(paths) {
         });
         const choice = await option.run();
         switch (true) {
-            case choice.includes("Find by"): {
-                await findByIngredient(paths);
-                break;
-            }
-            case choice.includes("View Saved"): {
-                await displayUserSavedRecipes(paths, data);
-                break;
-            }
-            case choice.includes("Back"): {
-                main();
-                break;
-            }
-            default: {
-                break;
-            };
+            case choice.includes("Find by"):
+                {
+                    await findByIngredient(paths);
+                    break;
+                }
+            case choice.includes("View Saved"):
+                {
+                    await displayUserSavedRecipes(paths, data);
+                    break;
+                }
+            case choice.includes("Back"):
+                {
+                    main();
+                    break;
+                }
+            default:
+                {
+                    break;
+                };
         };
     } else {
         fs.writeFileSync(recPath, JSON.stringify({}), "utf8");
@@ -551,13 +579,14 @@ async function ingredients(path) {
             '📃 View Saved',
             '➕ Add',
             '🗑️ Delete',
-            "⬅️ Go Back"].map(i => {
-                if (data.length > 0) {
-                    return i
-                } else {
-                    return i != '🗑️ Delete' && i != '📃 View Saved' ? i : ''
-                };
-            }).filter(i => i);
+            "⬅️ Go Back"
+        ].map(i => {
+            if (data.length > 0) {
+                return i
+            } else {
+                return i != '🗑️ Delete' && i != '📃 View Saved' ? i : ''
+            };
+        }).filter(i => i);
         const option = new Select({
             name: 'option',
             message: 'Select an option',
@@ -565,25 +594,30 @@ async function ingredients(path) {
         });
         const choice = await option.run()
         switch (true) {
-            case choice.includes("Add"): {
-                await addIngredients(path);
-                break;
-            }
-            case choice.includes("View"): {
-                await viewIngredients(path);
-                break;
-            }
-            case choice.includes("Delete"): {
-                await delIngredients(path);
-                break;
-            }
-            case choice.includes("Back"): {
-                main();
-                break;
-            }
-            default: {
-                break;
-            };
+            case choice.includes("Add"):
+                {
+                    await addIngredients(path);
+                    break;
+                }
+            case choice.includes("View"):
+                {
+                    await viewIngredients(path);
+                    break;
+                }
+            case choice.includes("Delete"):
+                {
+                    await delIngredients(path);
+                    break;
+                }
+            case choice.includes("Back"):
+                {
+                    main();
+                    break;
+                }
+            default:
+                {
+                    break;
+                };
         }
     } else {
         addIngredients(path);
@@ -609,7 +643,8 @@ async function mainMenu() {
         message: 'Select an option',
         choices: ['🍞 Ingredients', '📝 Recipes', '⚙️ Setup',
             // '❔ About',
-            '❌ Exit']
+            '❌ Exit'
+        ]
     });
     return option.run();
 }
@@ -700,6 +735,7 @@ async function confirmDelete() {
     });
     return choice.run();
 };
+
 function onCancel(err = '') {
     // console.clear();
     if (err != '') {
