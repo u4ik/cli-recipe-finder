@@ -200,7 +200,7 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
                 // console.log(await terminalImage.buffer(recipeImg, { width: '20%', height: '20%', maximumFrameRate: 10 }))
 
                 console.log(`🍜 Name: ${key.title}`);
-                console.log(`🖼️ Image: ${key.img}`)
+                // console.log(`🖼️ Image: ${key.img}`)
                 console.log(`👍 Likes: ${key.likes}`);
                 if (!userSaved) {
                     if (key.missedIngredients.length == 0) {
@@ -226,12 +226,7 @@ async function showRecipe(selectedRecipeName, dir, paths, userSaved = false) {
             type: 'select',
             message: 'Recipe Info',
             limit: 10,
-            choices: userInfo.System.Shell === "pwsh.exe" ? [
-                    { name: '💾 Save' },
-                    { name: '📃 View Instructions' },
-                    { name: "🖼️ View Image" },
-                    { name: "⬅️ Go Back" },
-                ] : [
+            choices: [
                     { name: '💾 Save' },
                     { name: '📃 View Instructions' },
                     { name: "⬅️ Go Back" },
